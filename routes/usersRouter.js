@@ -8,6 +8,6 @@ router
 
   .patch('/links', authMdw, ctrl.createLink)
   .get('/links', authMdw, ctrl.getLinks)
-  .delete('/links/:id', authMdw, ctrl.deleteLink);
+  .patch('/links/:urlId', authMdw, ctrl.deleteLink);
 
 module.exports = router;

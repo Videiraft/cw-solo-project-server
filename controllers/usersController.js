@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const uuidv4 = require('uuid/v4');
 const User = require('../models/usersModel');
 
 exports.createUser = async (req, res) => {
@@ -57,27 +58,47 @@ exports.createLink = async (req, res) => {
   try { // url, tags, expirationDate?, type?
     // TODO: review the properties and refactor code
     const link = {
+      urlId: uuidv4(),
       url: req.body.url,
       tags: req.body.tags,
     };
-    const newLink = await User.findByIdAndUpdate(req.authData._id, { $push: {links: link} }, { new: true }); // eslint-disable-line
-    res.status(200).send(newLink.links);
+    const user = await User.findById(req.authData._id); // eslint-disable-line
+    const exists = user.links.reduce((acc, linkEle) => {
+      if (linkEle.url === link.url) return true;
+      return false;
+    }, false);
+    if (exists) {
+      res.status(400).send({ status: 'fail', err: 'link already exists' });
+    } else {
+      const updatedUser = await User.findByIdAndUpdate(
+        req.authData._id, // eslint-disable-line
+        { $push: { links: link } },
+        { new: true },
+      );
+      res.status(200).send(updatedUser.links);
+    }
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
 };
 
-exports.getLinks = (req, res) => {
+exports.getLinks = async (req, res) => {
   try {
-    console.log('TODO: getLinks');
+    const user = await User.findById(req.authData._id); // eslint-disable-line
+    res.status(200).send(user.links);
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
 };
 
-exports.deleteLink = (req, res) => {
+exports.deleteLink = async (req, res) => {
   try {
-    console.log('TODO: deleteLink');
+    const updatedUser = await User.findByIdAndUpdate(
+      req.authData._id, // eslint-disable-line
+      { $pull: { links: { urlId: req.params.urlId } } },
+      { new: true },
+    );
+    res.status(200).send(updatedUser.links);
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
