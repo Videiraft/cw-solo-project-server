@@ -15,6 +15,10 @@ const Schema = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  tags: {
+    type: Array,
+    default: [],
+  },
 });
 
 const User = mongoose.model('User', Schema);

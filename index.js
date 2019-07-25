@@ -1,6 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 const usersRouter = require('./routes/usersRouter');
+
+dotenv.config({ path: './config.env' });
 
 const app = express();
 
@@ -12,7 +15,7 @@ mongoose.connect(
   { useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true },
 );
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Listening on port ${PORT}...`); // eslint-disable-line
 });

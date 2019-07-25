@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/usersModel');
 
 exports.createUser = async (req, res) => {
@@ -6,12 +7,12 @@ exports.createUser = async (req, res) => {
     const { email, password } = req.body;
     const saltRounds = 10;
     const hash = await bcrypt.hash(password, saltRounds);
-    const newUser = {
+    const user = {
       email,
       password: hash,
     };
-    User.create(newUser);
-    res.status(200).send({ email });
+    const newUser = await User.create(user);
+    res.status(201).send({ email: newUser.email, id: newUser._id }); // eslint-disable-line
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
@@ -28,7 +29,7 @@ exports.signIn = async (req, res) => {
     const [email, password] = Buffer.from(basicAuth[1], 'base64').toString().split(':');
     const user = await User.findOne({ email });
     const match = await bcrypt.compare(password, user.password);
-    // if there is a match send the user to the client after filtering the password
+    // if there is a match send the token to the client
     if (match) {
       const filteredUser = Object.keys(user._doc) // eslint-disable-line
         .filter(key => key !== 'password')
@@ -36,8 +37,31 @@ exports.signIn = async (req, res) => {
           newObj[key] = user[key]; // eslint-disable-line
           return newObj;
         }, {});
-      res.status(200).send(filteredUser);
+      // sign and send the json web token
+      jwt.sign(filteredUser, process.env.SECRET, { expiresIn: '2 days' }, (err, token) => {
+        if (err) { console.log(err); } // eslint-disable-line
+        res.status(200).send(token);
+      });
+    } else {
+      res.set({
+        'WWW-Authenticate': 'Basic',
+      });
+      res.status(401).send({ status: 'fail', err: 'Could not Login' });
     }
+  } catch (err) {
+    res.status(500).send({ status: 'fail', err });
+  }
+};
+
+exports.createLink = async (req, res) => {
+  try { // url, tags, expirationDate?, type?
+    // TODO: review the properties and refactor code
+    const link = {
+      url: req.body.url,
+      tags: req.body.tags,
+    };
+    const newLink = await User.findByIdAndUpdate(req.authData._id, { $push: {links: link} }, { new: true }); // eslint-disable-line
+    res.status(200).send(newLink.links);
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
@@ -46,15 +70,6 @@ exports.signIn = async (req, res) => {
 exports.getLinks = (req, res) => {
   try {
     console.log('TODO: getLinks');
-  } catch (err) {
-    res.status(500).send({ status: 'fail', err });
-  }
-};
-
-exports.createLink = (req, res) => {
-  try {
-    // TODO: generate id with uuid
-    console.log('TODO: createLink');
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
