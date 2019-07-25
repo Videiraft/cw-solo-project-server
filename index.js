@@ -9,7 +9,7 @@ app.use('/users', usersRouter);
 
 mongoose.connect(
   'mongodb://localhost/soloTest',
-  { useNewUrlParser: true, useFindAndModify: false },
+  { useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true },
 );
 
 const PORT = 4000;
