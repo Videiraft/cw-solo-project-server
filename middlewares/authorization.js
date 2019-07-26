@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 
 const authorizationMdware = (req, res, next) => {
   try {
-    console.log('Trying authorization');
     let token = req.headers['x-access-token'] || req.headers.authorization;
     if (token) {
       token = token.slice(7, token.length);

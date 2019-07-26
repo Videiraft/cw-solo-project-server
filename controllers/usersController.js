@@ -6,14 +6,18 @@ const User = require('../models/usersModel');
 exports.createUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const saltRounds = 10;
-    const hash = await bcrypt.hash(password, saltRounds);
-    const user = {
-      email,
-      password: hash,
-    };
-    const newUser = await User.create(user);
-    res.status(201).send({ email: newUser.email, id: newUser._id }); // eslint-disable-line
+    const user = await User.findOne({ email });
+    if (user) res.status(409).send({ status: 'fail', err: 'The user already exists!'});
+    else {
+      const saltRounds = 10;
+      const hash = await bcrypt.hash(password, saltRounds);
+      const newUser = {
+        email,
+        password: hash,
+      };
+      const createdUser = await User.create(newUser);
+      res.status(201).send({ email: createdUser.email, id: createdUser._id }); // eslint-disable-line
+    }
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
@@ -29,27 +33,35 @@ exports.signIn = async (req, res) => {
     // set email and password from the header and check the database for a match
     const [email, password] = Buffer.from(basicAuth[1], 'base64').toString().split(':');
     const user = await User.findOne({ email });
-    const match = await bcrypt.compare(password, user.password);
-    // if there is a match send the token to the client
-    if (match) {
-      const filteredUser = Object.keys(user._doc) // eslint-disable-line
-        .filter(key => key !== 'password')
-        .reduce((newObj, key) => {
-          newObj[key] = user[key]; // eslint-disable-line
-          return newObj;
-        }, {});
-      // sign and send the json web token
-      jwt.sign(filteredUser, process.env.SECRET, { expiresIn: '2 days' }, (err, token) => {
-        if (err) { console.log(err); } // eslint-disable-line
-        res.status(200).send(token);
-      });
-    } else {
-      res.set({
-        'WWW-Authenticate': 'Basic',
-      });
-      res.status(401).send({ status: 'fail', err: 'Could not Login' });
+    if (!user) res.status(401).send({ status: 'fail', err: 'The user doesn\'t exist!'});
+    else {
+      const match = await bcrypt.compare(password, user.password);
+      // if there is a match send the token to the client
+      if (match) {
+        const filteredUser = Object.keys(user._doc) // eslint-disable-line
+          .filter(key => key === 'email' || key === '_id')
+          .reduce((newObj, key) => {
+            newObj[key] = user[key]; // eslint-disable-line
+            return newObj;
+          }, {});
+        // sign and send the json web token
+        jwt.sign(filteredUser, process.env.SECRET, { expiresIn: '2 days' }, (err, token) => {
+          if (err) {
+            console.log(err); // eslint-disable-line
+            res.status(401).send({ status: 'fail', err: 'Error signing, please retry!' });
+          } else {
+            res.status(200).send({ id_token: token });
+          }
+        });
+      } else {
+        res.set({
+          'WWW-Authenticate': 'Basic',
+        });
+        res.status(401).send({ status: 'fail', err: 'Could not Login, the inserted password is wrong!' });
+      }
     }
   } catch (err) {
+    console.log(err);
     res.status(500).send({ status: 'fail', err });
   }
 };
@@ -62,11 +74,7 @@ exports.createLink = async (req, res) => {
       url: req.body.url,
       tags: req.body.tags,
     };
-    const user = await User.findById(req.authData._id); // eslint-disable-line
-    const exists = user.links.reduce((acc, linkEle) => {
-      if (linkEle.url === link.url) return true;
-      return false;
-    }, false);
+    const exists = await User.findOne({ _id: req.authData._id, 'links.url': link.url });
     if (exists) {
       res.status(400).send({ status: 'fail', err: 'link already exists' });
     } else {
@@ -75,7 +83,7 @@ exports.createLink = async (req, res) => {
         { $push: { links: link } },
         { new: true },
       );
-      res.status(200).send(updatedUser.links);
+      res.status(200).send(updatedUser.links.find(({ url }) => url === link.url));
     }
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
