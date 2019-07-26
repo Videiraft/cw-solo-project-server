@@ -4,9 +4,9 @@ const authMdw = require('../middlewares/authorization');
 
 router
   .post('/', ctrl.createUser)
-  .get('/sign-in', ctrl.signIn)
+  .get('/login', ctrl.login)
 
-  .patch('/links', authMdw, ctrl.createLink)
+  .put('/links', authMdw, ctrl.createLink)
   .get('/links', authMdw, ctrl.getLinks)
   .patch('/links/:urlId', authMdw, ctrl.deleteLink);
 

@@ -23,7 +23,7 @@ exports.createUser = async (req, res) => {
   }
 };
 
-exports.signIn = async (req, res) => {
+exports.login = async (req, res) => {
   try {
     // check if there is a basic authorization header
     const basicAuth = req.headers.authorization.split(' ');
@@ -61,7 +61,7 @@ exports.signIn = async (req, res) => {
       }
     }
   } catch (err) {
-    console.log(err);
+    console.log(err); // eslint-disable-line
     res.status(500).send({ status: 'fail', err });
   }
 };
@@ -74,7 +74,7 @@ exports.createLink = async (req, res) => {
       url: req.body.url,
       tags: req.body.tags,
     };
-    const exists = await User.findOne({ _id: req.authData._id, 'links.url': link.url });
+    const exists = await User.findOne({ _id: req.authData._id, 'links.url': link.url }); // eslint-disable-line
     if (exists) {
       res.status(400).send({ status: 'fail', err: 'link already exists' });
     } else {
