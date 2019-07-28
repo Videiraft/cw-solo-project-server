@@ -2,9 +2,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const schedule = require('node-schedule');
 const usersRouter = require('./routes/usersRouter');
+const emailController = require('./controllers/emailController');
 
 dotenv.config({ path: './config.env' });
+
+// Send email for users everyday at 07:00
+schedule.scheduleJob('00 * * * *', () => {
+  emailController.sendEmail();
+});
 
 const app = express();
 
