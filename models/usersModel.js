@@ -15,7 +15,7 @@ const Schema = new mongoose.Schema({
     type: [{
       url: String,
       tags: [String],
-      library: String,
+      favicon: String,
     }],
     default: [],
   },

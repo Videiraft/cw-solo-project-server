@@ -74,6 +74,7 @@ exports.createLink = async (req, res) => {
     const link = {
       url: req.body.url,
       tags,
+      favicon: req.body.favicon,
     };
     const exists = await User.findOne({ _id: req.authData._id, 'links.url': link.url }); // eslint-disable-line
     if (exists) {
