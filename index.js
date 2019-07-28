@@ -9,7 +9,7 @@ const emailController = require('./controllers/emailController');
 dotenv.config({ path: './config.env' });
 
 // Send email for users everyday at 07:00
-schedule.scheduleJob('00 * * * *', () => {
+schedule.scheduleJob('44 * * * *', () => {
   emailController.sendEmail();
 });
 

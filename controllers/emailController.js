@@ -20,9 +20,18 @@ exports.sendEmail = async () => {
     users.forEach(async (user) => {
       try {
         if (user.links.length > 0) {
+          // Choose random link to send by email
           const randomIndex = Math.floor(Math.random() * user.links.length);
           const linkToSend = user.links[randomIndex];
-          // TODO: update database link setting sent to true;
+          // Update database link setting sent to true;
+          const stringTest = `links.${randomIndex}.sent`;
+          const test = await User.findByIdAndUpdate(
+            user._id, // eslint-disable-line
+            { $set: { [stringTest]: true } },
+            { new: true },
+          );
+          console.log(test); // eslint-disable-line
+          // Send Email
           const info = await transporter.sendMail({
             from: '"Pin-It!" <pin.it.testmail@gmail.com>', // sender address
             to: user.email, // list of receivers
