@@ -1,6 +1,5 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const User = require('../models/usersModel');
 
 exports.createUser = async (req, res) => {
@@ -69,11 +68,9 @@ exports.login = async (req, res) => {
 exports.createLink = async (req, res) => {
   try { // url, tags, expirationDate?, type?
     // TODO: review the properties to possibly add type (for render purposes) or library?
-    let { tags } = req.body;
-    tags = tags.trim().split(',');
     const link = {
       url: req.body.url,
-      tags,
+      tags: req.body.tags,
       favicon: req.body.favicon,
     };
     const exists = await User.findOne({ _id: req.authData._id, 'links.url': link.url }); // eslint-disable-line
