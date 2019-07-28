@@ -12,7 +12,11 @@ const Schema = new mongoose.Schema({
     required: true,
   },
   links: {
-    type: Array,
+    type: [{
+      url: String,
+      tags: [String],
+      library: String,
+    }],
     default: [],
   },
   tags: {
@@ -20,6 +24,22 @@ const Schema = new mongoose.Schema({
     default: [],
   },
 });
+// {
+//   libraries: {
+//     type: [{
+//       name: String,
+//       links: {
+//         type: [{
+//           url: String,
+//           tags: [String],
+//           library String,
+//         }],
+//         default: [],
+//       }
+//     }],
+//     default: [],
+//   }
+// }
 
 const User = mongoose.model('User', Schema);
 module.exports = User;

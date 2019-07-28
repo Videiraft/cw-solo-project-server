@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const uuidv4 = require('uuid/v4');
+const mongoose = require('mongoose');
 const User = require('../models/usersModel');
 
 exports.createUser = async (req, res) => {
@@ -45,7 +45,7 @@ exports.login = async (req, res) => {
             return newObj;
           }, {});
         // sign and send the json web token
-        jwt.sign(filteredUser, process.env.SECRET, { expiresIn: '2 days' }, (err, token) => {
+        jwt.sign(filteredUser, process.env.SECRET, (err, token) => {
           if (err) {
             console.log(err); // eslint-disable-line
             res.status(401).send({ status: 'fail', err: 'Error signing, please retry!' });
@@ -68,11 +68,12 @@ exports.login = async (req, res) => {
 
 exports.createLink = async (req, res) => {
   try { // url, tags, expirationDate?, type?
-    // TODO: review the properties and refactor code
+    // TODO: review the properties to possibly add type (for render purposes) or library?
+    let { tags } = req.body;
+    tags = tags.trim().split(',');
     const link = {
-      urlId: uuidv4(),
       url: req.body.url,
-      tags: req.body.tags,
+      tags,
     };
     const exists = await User.findOne({ _id: req.authData._id, 'links.url': link.url }); // eslint-disable-line
     if (exists) {
@@ -80,7 +81,7 @@ exports.createLink = async (req, res) => {
     } else {
       const updatedUser = await User.findByIdAndUpdate(
         req.authData._id, // eslint-disable-line
-        { $push: { links: link } },
+        { $push: { links: link }, $addToSet: { tags: { $each: [...link.tags] } } },
         { new: true },
       );
       res.status(200).send(updatedUser.links.find(({ url }) => url === link.url));
@@ -90,10 +91,19 @@ exports.createLink = async (req, res) => {
   }
 };
 
-exports.getLinks = async (req, res) => {
+exports.getAllLinks = async (req, res) => {
   try {
     const user = await User.findById(req.authData._id); // eslint-disable-line
     res.status(200).send(user.links);
+  } catch (err) {
+    res.status(500).send({ status: 'fail', err });
+  }
+};
+
+exports.getAllTags = async (req, res) => {
+  try {
+    const user = await User.findById(req.authData._id); // eslint-disable-line
+    res.status(200).send(user.tags);
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
@@ -111,3 +121,21 @@ exports.deleteLink = async (req, res) => {
     res.status(500).send({ status: 'fail', err });
   }
 };
+
+// TODO: I should do this filter on the front-end?
+// exports.getLinksByLibrary = async (req, res) => {
+//   try {
+//     User.aggregate([
+//       { $match: { _id: mongoose.Types.ObjectId(req.authData._id) } },
+//       { $unwind: '$links' },
+//       { $match: { 'links.library': req.params.library } },
+//     ], (err, results) => {
+//       if (err) res.status(404).send({ status: 'fail', err: 'Library doesn\'t exist' });
+//       // TODO: filter the password
+//       res.status(200).send(results);
+//     });
+//   } catch (err) {
+//     res.status(500).send({ status: 'fail', err });
+//   }
+// };
+
