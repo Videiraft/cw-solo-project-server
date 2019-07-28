@@ -1,3 +1,5 @@
+const fs = require('fs');
+const Handlebars = require('handlebars');
 const nodemailer = require('nodemailer');
 const User = require('../models/usersModel');
 
@@ -33,12 +35,20 @@ exports.sendEmail = async () => {
           );
           console.log(test); // eslint-disable-line
           // Send the email
-          await transporter.sendMail({
+          const view = fs.readFileSync(__dirname + '/../templates/email-template.html', 'utf8'); // eslint-disable-line
+          const template = Handlebars.compile(view);
+          transporter.sendMail({
             from: '"Pin-It!" <pin.it.testmail@gmail.com>', // sender address
             to: user.email, // list of receivers
-            subject: 'Hello Test', // Subject line
-            text: 'Hello world?', // plain text body
-            html: `<b>${linkToSend.url}</b>`, // html body
+            subject: 'Pin-It: Your Daily Thought...', // Subject line
+            // text: 'Hello world?', // plain text body
+            // TODO: Description functionality
+            html: template({
+              title: linkToSend.title,
+              description: '',
+              favicon: linkToSend.favicon,
+              url: linkToSend.url,
+            }), // html body
           });
         }
       } catch (err) {
