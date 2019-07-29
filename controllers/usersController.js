@@ -70,6 +70,7 @@ exports.createLink = async (req, res) => {
     // TODO: review the properties to possibly add type (for render purposes) or library?
     const link = {
       title: req.body.title,
+      description: req.body.description,
       url: req.body.url,
       tags: req.body.tags,
       favicon: req.body.favicon,
