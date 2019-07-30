@@ -14,8 +14,9 @@ const Schema = new mongoose.Schema({
   links: {
     type: [{
       title: String,
-      description: String,
       url: String,
+      description: String,
+      typeLink: String,
       tags: [String],
       favicon: String,
       sent: {

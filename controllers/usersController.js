@@ -66,11 +66,23 @@ exports.login = async (req, res) => {
 };
 
 exports.createLink = async (req, res) => {
-  try { // url, tags, expirationDate?, type?
-    // TODO: review the properties to possibly add type (for render purposes) or library?
+  try { // url, tags, expirationDate?
+    // TODO: review the properties to possibly add library?
+    const { url } = req.body;
+    let typeLink;
+    if (url.includes('youtube.com')) {
+      typeLink = 'video';
+    } else if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
+      const index = url.indexOf('?');
+      if (index !== -1) url.slice(url.indexOf('?'));
+      typeLink = 'image';
+    } else {
+      typeLink = 'article';
+    }
     const link = {
       title: req.body.title,
       description: req.body.description,
+      typeLink,
       url: req.body.url,
       tags: req.body.tags,
       favicon: req.body.favicon,
