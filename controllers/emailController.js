@@ -43,12 +43,17 @@ exports.sendEmail = async () => {
             subject: 'Pin-It: Your Daily Thought...', // Subject line
             // text: 'Hello world?', // plain text body
             // TODO: Description functionality
+            attachments: [{
+              filename: 'pin-it.png',
+              path: __dirname +'/../templates/assets/pin-it.png',
+              cid: 'logo',
+            }],
             html: template({
               title: linkToSend.title,
-              description: '',
+              description: linkToSend.description,
               favicon: linkToSend.favicon,
               url: linkToSend.url,
-            }), // html body
+            }),
           });
         }
       } catch (err) {

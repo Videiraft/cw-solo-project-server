@@ -125,7 +125,7 @@ exports.deleteLink = async (req, res) => {
   try {
     const updatedUser = await User.findByIdAndUpdate(
       req.authData._id, // eslint-disable-line
-      { $pull: { links: { urlId: req.params.urlId } } },
+      { $pull: { links: { _id: req.params.urlId } } },
       { new: true },
     );
     res.status(200).send(updatedUser.links);
