@@ -5,8 +5,10 @@ const User = require('../models/usersModel');
 exports.createUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    // find if the user/email already exists and send a warning response if true
     const user = await User.findOne({ email });
-    if (user) res.status(409).send({ status: 'fail', err: 'The user already exists!'});
+    if (user) res.status(409).send({ status: 'fail', data: { email: 'This email already exists.' } });
+    // else create a new user/email
     else {
       const saltRounds = 10;
       const hash = await bcrypt.hash(password, saltRounds);
@@ -15,7 +17,7 @@ exports.createUser = async (req, res) => {
         password: hash,
       };
       const createdUser = await User.create(newUser);
-      res.status(201).send({ email: createdUser.email, id: createdUser._id }); // eslint-disable-line
+      res.status(201).send({ status: 'success', data: { email: createdUser.email, id: createdUser._id } }); // eslint-disable-line
     }
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
@@ -32,7 +34,7 @@ exports.login = async (req, res) => {
     // set email and password from the header and check the database for a match
     const [email, password] = Buffer.from(basicAuth[1], 'base64').toString().split(':');
     const user = await User.findOne({ email });
-    if (!user) res.status(401).send({ status: 'fail', err: 'The user doesn\'t exist!'});
+    if (!user) res.status(401).send({ status: 'fail', data: { email: 'This email doesn\'t exist.' } });
     else {
       const match = await bcrypt.compare(password, user.password);
       // if there is a match send the token to the client
@@ -47,16 +49,17 @@ exports.login = async (req, res) => {
         jwt.sign(filteredUser, process.env.SECRET, (err, token) => {
           if (err) {
             console.log(err); // eslint-disable-line
-            res.status(401).send({ status: 'fail', err: 'Error signing, please retry!' });
+            res.status(401).send({ status: 'fail', err });
           } else {
-            res.status(200).send({ id_token: token });
+            res.status(200).send({ status: 'success', data: { id_token: token } });
           }
         });
+      // else the password is wrong
       } else {
         res.set({
           'WWW-Authenticate': 'Basic',
         });
-        res.status(401).send({ status: 'fail', err: 'Could not Login, the inserted password is wrong!' });
+        res.status(401).send({ status: 'fail', err: { password: 'The password is wrong.' } });
       }
     }
   } catch (err) {
@@ -66,19 +69,22 @@ exports.login = async (req, res) => {
 };
 
 exports.createLink = async (req, res) => {
-  try { // url, tags, expirationDate?
-    // TODO: review the properties to possibly add library?
+  try {
     const { url } = req.body;
     let typeLink;
+    // set typeLink to video if url is an youtube video
     if (url.includes('youtube.com')) {
       typeLink = 'video';
+    // set typeLink to image if url is an image link
     } else if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
       const index = url.indexOf('?');
       if (index !== -1) url.slice(url.indexOf('?'));
       typeLink = 'image';
+    // else set typeLink to article
     } else {
       typeLink = 'article';
     }
+    // set all properties of the new link
     const link = {
       title: req.body.title,
       description: req.body.description,
@@ -87,16 +93,18 @@ exports.createLink = async (req, res) => {
       tags: req.body.tags,
       favicon: req.body.favicon,
     };
+    // check if link/url already exists
     const exists = await User.findOne({ _id: req.authData._id, 'links.url': link.url }); // eslint-disable-line
     if (exists) {
-      res.status(400).send({ status: 'fail', err: 'link already exists' });
+      res.status(409).send({ status: 'fail', err: { url: 'This url already exists.' } });
+    // if it doesn't exist yet, create it
     } else {
       const updatedUser = await User.findByIdAndUpdate(
         req.authData._id, // eslint-disable-line
         { $push: { links: link }, $addToSet: { tags: { $each: [...link.tags] } } },
         { new: true },
       );
-      res.status(200).send(updatedUser.links.find(({ url }) => url === link.url));
+      res.status(200).send({ status: 'success', data: { link: updatedUser.links.find(({ url }) => url === link.url) } });
     }
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
@@ -106,7 +114,7 @@ exports.createLink = async (req, res) => {
 exports.getAllLinks = async (req, res) => {
   try {
     const user = await User.findById(req.authData._id); // eslint-disable-line
-    res.status(200).send(user.links);
+    res.status(200).send({ status: 'success', data: { links: user.links } });
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
@@ -115,7 +123,7 @@ exports.getAllLinks = async (req, res) => {
 exports.getAllTags = async (req, res) => {
   try {
     const user = await User.findById(req.authData._id); // eslint-disable-line
-    res.status(200).send(user.tags);
+    res.status(200).send({ status: 'success', data: { tags: user.tags } });
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
@@ -123,18 +131,18 @@ exports.getAllTags = async (req, res) => {
 
 exports.deleteLink = async (req, res) => {
   try {
-    const updatedUser = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       req.authData._id, // eslint-disable-line
       { $pull: { links: { _id: req.params.urlId } } },
-      { new: true },
+      // { new: true },
     );
-    res.status(200).send(updatedUser.links);
+    res.status(200).send({ status: 'success', data: null });
   } catch (err) {
     res.status(500).send({ status: 'fail', err });
   }
 };
 
-// TODO: feature - Implement Libraries. (Front-end or back-end filter?)
+// TODO: possible feature - Implement Libraries. (Front-end or back-end filter?)
 // exports.getLinksByLibrary = async (req, res) => {
 //   try {
 //     User.aggregate([
@@ -150,4 +158,3 @@ exports.deleteLink = async (req, res) => {
 //     res.status(500).send({ status: 'fail', err });
 //   }
 // };
-

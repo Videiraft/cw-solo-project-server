@@ -9,12 +9,11 @@ const emailController = require('./controllers/emailController');
 dotenv.config({ path: './config.env' });
 
 // Send email for users everyday at 07:00
-schedule.scheduleJob('40 * * * *', () => {
+schedule.scheduleJob('00 07 * * *', () => {
   emailController.sendEmail();
 });
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 app.use('/users', usersRouter);
@@ -24,7 +23,7 @@ mongoose.connect(
   { useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true },
 );
 
-const PORT = process.env.PORT || 4000;
+const { PORT } = process.env;
 app.listen(PORT, () => {
   console.log(`🚀 Listening on port ${PORT}...`); // eslint-disable-line
 });

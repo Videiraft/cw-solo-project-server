@@ -9,7 +9,7 @@ router
   .put('/links', authMdw, ctrl.createLink)
   .get('/links', authMdw, ctrl.getAllLinks)
   // .get('/links/:library', authMdw, ctrl.getLinksByLibrary)
-  .patch('/links/:urlId', authMdw, ctrl.deleteLink)
+  .delete('/links/:urlId', authMdw, ctrl.deleteLink)
   .get('/links/tags', authMdw, ctrl.getAllTags);
 
 module.exports = router;
