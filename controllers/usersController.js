@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/usersModel');
 
-exports.createUser = async (req, res) => {
+exports.createUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     // find if the user/email already exists and send a warning response if true
@@ -20,11 +20,11 @@ exports.createUser = async (req, res) => {
       res.status(201).send({ status: 'success', data: { email: createdUser.email, id: createdUser._id } }); // eslint-disable-line
     }
   } catch (err) {
-    res.status(500).send({ status: 'fail', err });
+    next(err);
   }
 };
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
   try {
     // check if there is a basic authorization header
     const basicAuth = req.headers.authorization.split(' ');
@@ -63,12 +63,11 @@ exports.login = async (req, res) => {
       }
     }
   } catch (err) {
-    console.log(err); // eslint-disable-line
-    res.status(500).send({ status: 'fail', err });
+    next(err);
   }
 };
 
-exports.createLink = async (req, res) => {
+exports.createLink = async (req, res, next) => {
   try {
     const { url } = req.body;
     let typeLink;
@@ -107,29 +106,29 @@ exports.createLink = async (req, res) => {
       res.status(200).send({ status: 'success', data: { link: updatedUser.links.find(({ url }) => url === link.url) } });
     }
   } catch (err) {
-    res.status(500).send({ status: 'fail', err });
+    next(err);
   }
 };
 
-exports.getAllLinks = async (req, res) => {
+exports.getAllLinks = async (req, res, next) => {
   try {
     const user = await User.findById(req.authData._id); // eslint-disable-line
     res.status(200).send({ status: 'success', data: { links: user.links } });
   } catch (err) {
-    res.status(500).send({ status: 'fail', err });
+    next(err);
   }
 };
 
-exports.getAllTags = async (req, res) => {
+exports.getAllTags = async (req, res, next) => {
   try {
     const user = await User.findById(req.authData._id); // eslint-disable-line
     res.status(200).send({ status: 'success', data: { tags: user.tags } });
   } catch (err) {
-    res.status(500).send({ status: 'fail', err });
+    next(err);
   }
 };
 
-exports.deleteLink = async (req, res) => {
+exports.deleteLink = async (req, res, next) => {
   try {
     await User.findByIdAndUpdate(
       req.authData._id, // eslint-disable-line
@@ -138,7 +137,7 @@ exports.deleteLink = async (req, res) => {
     );
     res.status(200).send({ status: 'success', data: null });
   } catch (err) {
-    res.status(500).send({ status: 'fail', err });
+    next(err);
   }
 };
 
