@@ -39,12 +39,8 @@ exports.login = async (req, res, next) => {
       const match = await bcrypt.compare(password, user.password);
       // if there is a match send the token to the client
       if (match) {
-        const filteredUser = Object.keys(user._doc) // eslint-disable-line
-          .filter(key => key === 'email' || key === '_id')
-          .reduce((newObj, key) => {
-            newObj[key] = user[key]; // eslint-disable-line
-            return newObj;
-          }, {});
+        // eslint-disable-next-line no-underscore-dangle
+        const filteredUser = { email: user._doc.email, _id: user._doc._id };
         // sign and send the json web token
         jwt.sign(filteredUser, process.env.SECRET, (err, token) => {
           if (err) {
@@ -72,17 +68,14 @@ exports.createLink = async (req, res, next) => {
     const { url } = req.body;
     let typeLink;
     // set typeLink to video if url is an youtube video
-    if (url.includes('youtube.com')) {
-      typeLink = 'video';
+    if (url.includes('youtube.com')) typeLink = 'video';
     // set typeLink to image if url is an image link
-    } else if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
+    else if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) {
       const index = url.indexOf('?');
-      if (index !== -1) url.slice(url.indexOf('?'));
+      if (index !== -1) url.slice(index);
       typeLink = 'image';
     // else set typeLink to article
-    } else {
-      typeLink = 'article';
-    }
+    } else typeLink = 'article';
     // set all properties of the new link
     const link = {
       title: req.body.title,
@@ -140,7 +133,6 @@ exports.deleteLink = async (req, res, next) => {
     await User.findByIdAndUpdate(
       req.authData._id, // eslint-disable-line
       { $pull: { links: { _id: req.params.urlId } } },
-      // { new: true },
     );
     res.status(200).send({ status: 'success', data: null });
   } catch (err) {
