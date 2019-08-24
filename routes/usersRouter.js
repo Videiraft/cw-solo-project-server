@@ -8,7 +8,6 @@ router
 
   .put('/links', authMdw, ctrl.createLink)
   .get('/links', authMdw, ctrl.getAllLinks)
-  // .get('/links/:library', authMdw, ctrl.getLinksByLibrary)
   .delete('/links/:urlId', authMdw, ctrl.deleteLink)
   .get('/links/tags', authMdw, ctrl.getAllTags);
 

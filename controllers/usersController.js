@@ -103,7 +103,13 @@ exports.createLink = async (req, res, next) => {
         { $push: { links: link }, $addToSet: { tags: { $each: [...link.tags] } } },
         { new: true },
       );
-      res.status(200).send({ status: 'success', data: { link: updatedUser.links.find(({ url }) => url === link.url) } });
+      res.status(200).send(
+        {
+          status: 'success',
+          // eslint-disable-next-line no-shadow
+          data: { link: updatedUser.links.find(({ url }) => url === link.url) },
+        },
+      );
     }
   } catch (err) {
     next(err);
@@ -140,20 +146,3 @@ exports.deleteLink = async (req, res, next) => {
     next(err);
   }
 };
-
-// TODO: possible feature - Implement Libraries. (Front-end or back-end filter?)
-// exports.getLinksByLibrary = async (req, res) => {
-//   try {
-//     User.aggregate([
-//       { $match: { _id: mongoose.Types.ObjectId(req.authData._id) } },
-//       { $unwind: '$links' },
-//       { $match: { 'links.library': req.params.library } },
-//     ], (err, results) => {
-//       if (err) res.status(404).send({ status: 'fail', err: 'Library doesn\'t exist' });
-//       // TODO: filter the password
-//       res.status(200).send(results);
-//     });
-//   } catch (err) {
-//     res.status(500).send({ status: 'fail', err });
-//   }
-// };
