@@ -127,8 +127,9 @@ exports.getAllLinks = async (req, res, next) => {
 
 exports.getAllTags = async (req, res, next) => {
   try {
-    const user = await User.findById(req.authData._id); // eslint-disable-line
-    res.status(200).send({ status: 'success', data: { tags: user.tags } });
+    // eslint-disable-next-line no-underscore-dangle
+    const tags = await User.findById(req.authData._id).distinct('links.tags');
+    res.status(200).send({ status: 'success', data: { tags } });
   } catch (err) {
     next(err);
   }
