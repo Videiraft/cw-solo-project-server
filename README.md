@@ -40,7 +40,7 @@ node index.js
 * Mongoose ODM
 
 ## Recommendation
-Have a look at the browser app: [Pin-it Server](https://github.com/Videiraft/pin-it)
+Have a look at the browser app: [Pin-it](https://github.com/Videiraft/pin-it)
 Have a look at the chrome extension: [Chrome Extension](https://github.com/Videiraft/pin-it-chrome-ext)
 
 
