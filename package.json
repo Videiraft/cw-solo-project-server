@@ -1,0 +1,38 @@
+{
+  "name": "cw-solo-project-server",
+  "version": "1.0.0",
+  "description": "Solo Project Server - CodeWorks",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Videiraft/cw-solo-project-server.git"
+  },
+  "author": "Fábio Videira",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Videiraft/cw-solo-project-server/issues"
+  },
+  "homepage": "https://github.com/Videiraft/cw-solo-project-server#readme",
+  "dependencies": {
+    "bcrypt": "^3.0.6",
+    "cors": "^2.8.5",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "handlebars": "^4.1.2",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.6.6",
+    "node-schedule": "^1.3.2",
+    "nodemailer": "^6.3.0",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-import": "^2.18.2",
+    "nodemon": "^1.19.1"
+  }
+}
